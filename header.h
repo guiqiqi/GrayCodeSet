@@ -5,5 +5,6 @@
 #include <memory>
 #include <string>
 #include <random>
+#include <ctime>
 
 #endif //GRAYSET_HEADER_H

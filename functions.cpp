@@ -1,7 +1,7 @@
 #include "functions.h"
 
 
-static std::default_random_engine engine(0);
+static std::default_random_engine engine(std::time(nullptr));
 static std::uniform_real_distribution<double> uniform(0, 1);
 
 // Hash Template Function Specialization for Different Types of Values
