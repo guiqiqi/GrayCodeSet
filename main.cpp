@@ -1,7 +1,7 @@
 #define DEBUG
 #undef DEBUG
-#define MAX_INPUT 10
-#define MIN_INPUT 1
+#define MAX_GRAY_POWER_INPUT 10
+#define MIN_GRAY_POWER_INPUT 1
 
 #include "functions.h"
 
@@ -10,11 +10,13 @@ int main(int argc, const char* argv[]) {
     input:
     unsigned int power;
     std::string buffer;
-    std::cout << "Input power of Gray code (1 - 10): ";
+    std::cout << "Input power of Gray code ("
+              << MIN_GRAY_POWER_INPUT << " - "
+              << MAX_GRAY_POWER_INPUT << "): ";
     std::cin >> buffer;
     power = strtoul(buffer.c_str(), nullptr, 10);
-    if (power < MIN_INPUT || power > MAX_INPUT) {
-        std::cout << "Invalid power range (1 - 10)" << std::endl;
+    if (power < MIN_GRAY_POWER_INPUT || power > MAX_GRAY_POWER_INPUT) {
+        std::cout << "Invalid power range." << std::endl;
         goto input;
     }
 
