@@ -30,4 +30,12 @@
 *.exe
 *.out
 *.app
+
+# MacOS folder files
 .DS_Store
+
+# CMake generated debug files
+/cmake-build-debug
+
+# IDEA config files
+/.idea
