@@ -14,10 +14,11 @@ private:
     size_t _maxsize;
     Vector<T>** _slots;
     size_t _count;
+    bool _unique;
 
 public:
     Set() = delete;
-    explicit Set(size_t maxsize): _maxsize(maxsize), _count(0) {
+    explicit Set(size_t maxsize, bool unique = true): _maxsize(maxsize), _count(0), _unique(unique) {
         if (maxsize <= 0)
             throw std::range_error("Set maxsize must greater than 0.");
 
@@ -31,8 +32,10 @@ public:
         const unsigned int key = hash(this->_maxsize, value);
         Vector<T>* slot = this->_slots[key];
 
-        if (slot->exist(value))
+        // Use the short-circuit theorem to check whether the same value exists
+        if (this->_unique && slot->exist(value))
             return;
+
         slot->append(value);
         this->_count++;
     }
@@ -202,14 +205,20 @@ public:
         size_t size = std::min(this->count(), other.count());
         Set<Couple<T, T>> result(size);
 
-        for (const auto& valuea: *this) {
-            for (const auto& valueb: other) {
-                Couple<T, T> couple(valuea, valueb);
-                result.add(couple);
-                break;
-            }
-            if (size-- == 0) break;
+        // No requirement for end iter cuz size has been defined
+        Set<T>::Iterator this_iter = this->begin();
+        Set<T>::Iterator other_iter = other.begin();
+
+        for (auto index = 0; index < size; index++) {
+            const T& value_a(*this_iter);
+            const T& value_b(*other_iter);
+            Couple<T, T> couple(value_a, value_b);
+            result.add(couple);
+
+            // Increment for iterators
+            ++this_iter; ++other_iter;
         }
+
         return result;
     }
 
@@ -217,9 +226,9 @@ public:
         size_t size = this->count() * other.count();
         Set<Couple<T, T>> result(size);
 
-        for (const auto& valuea: *this)
-            for (const auto& valueb: other) {
-                Couple<T, T> couple(valuea, valueb);
+        for (const auto& value_a: *this)
+            for (const auto& value_b: other) {
+                Couple<T, T> couple(value_a, value_b);
                 result.add(couple);
             }
 
