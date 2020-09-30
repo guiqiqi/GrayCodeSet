@@ -50,12 +50,17 @@ bool operator==(const Binary& bina, const Binary& binb) {
 
 Set<Gray> universal(unsigned int power) {
     Set<Gray> set(16);
+    std::cout << "Value" << '\t' << "Gray" << std::endl;
+    std::cout << "------------" << std::endl;
+
     for (unsigned int value = 0; value < (0x1u << power); value++) {
         Gray gray(power);
         gray.import<short>(value);
+        std::cout << value << "\t" << gray << std::endl;
         set.add(gray);
     }
 
+    std::cout << std::endl;
     return set;
 }
 
