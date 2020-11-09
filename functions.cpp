@@ -1,8 +1,6 @@
 #include "functions.h"
 
-
 static std::default_random_engine engine(std::time(nullptr));
-static std::uniform_real_distribution<double> uniform(0, 1);
 
 // Hash Template Function Specialization for Different Types of Values
 template <>
@@ -49,9 +47,15 @@ bool operator==(const Binary& bina, const Binary& binb) {
 }
 
 Set<Gray> universal(unsigned int power) {
-    Set<Gray> set(16);
+    Set<Gray> set(16, true);
     std::cout << "Value" << '\t' << "Gray" << std::endl;
     std::cout << "------------" << std::endl;
+
+    // Test for power of Zero
+    if (power == 0) {
+        std::cout << std::endl;
+        return set;
+    }
 
     for (unsigned int value = 0; value < (0x1u << power); value++) {
         Gray gray(power);
@@ -64,13 +68,23 @@ Set<Gray> universal(unsigned int power) {
     return set;
 }
 
-Set<Gray> random(unsigned int power) {
+Set<Gray> random(unsigned int power, unsigned int cardinality) {
+    std::uniform_int_distribution<unsigned> uniform(0, 0x1u << power);
+
+#ifdef MULTISET
+    Set<Gray> set(16, false);
+#else
     Set<Gray> set(16);
-    for (unsigned int value = 0; value < (0x1u << power); value++) {
+#endif
+
+    // When user has specified cardinality
+    if (cardinality <= 0)
+        cardinality = uniform(engine);
+
+    for (unsigned int index = 0; index < cardinality; index++) {
         Gray gray(power);
-        gray.import<short>(value);
-        if (uniform(engine) > 0.5)
-            set.add(gray);
+        gray.import<short>(uniform(engine));
+        set.add(gray);
     }
     return set;
 }

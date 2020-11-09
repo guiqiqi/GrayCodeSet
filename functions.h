@@ -14,6 +14,12 @@ void show(const char* label, const Set<T>& set, unsigned int line = 4) {
     unsigned int lc = line;
     auto size = set.count() - 1;
 
+    // Detect empty set
+    if (set.count() == 0) {
+        std::cout << '}' << std::endl;
+        return;
+    }
+
     for (auto value: set) {
         if (lc-- == line)
             std::cout << '\t';
@@ -31,10 +37,39 @@ void show(const char* label, const Set<T>& set, unsigned int line = 4) {
     if (lc != line)
         std::cout << std::endl;
     std::cout << '}' << std::endl;
+
+    // Show multiset analysis
+    if (set.multiple()) {
+        std::cout << "Multiple set analysing: " << std::endl;
+        Vector<Couple<T, unsigned int>> result = set.analysis();
+
+        Couple<T, unsigned int> first = result.index(0);
+        T mode = first.first();
+        unsigned int most = first.second();
+
+        unsigned int total = result.count();
+        for (int index = 0; index < total; index++) {
+            Couple<T, unsigned int> value = result.pop(0);
+            auto element = value.first();
+            auto count = value.second();
+            std::cout << element << " - " << count << " times" << std::endl;
+
+            // Update count result
+            if (count > most) {
+                mode = element;
+                most = count;
+            }
+
+        }
+
+        // Show mode and count
+        std::cout << "Mode element: " << mode << " with multiple " << most << std::endl;
+        std::cout << std::endl;
+    }
 }
 
-// Generate Gray Set with wpecific power
+// Generate Gray Set with specific power
 Set<Gray> universal(unsigned int);
-Set<Gray> random(unsigned int);
+Set<Gray> random(unsigned int, unsigned int = 0);
 
 #endif //GRAYSET_FUNCTIONS_H
