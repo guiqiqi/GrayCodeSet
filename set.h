@@ -11,25 +11,27 @@ unsigned int hash(size_t, const T&);
 template <typename T>
 class Set {
 private:
-    size_t _maxsize;
+    size_t _size;
     Vector<T>** _slots;
     size_t _count;
     bool _unique;
 
 public:
     Set() = delete;
-    explicit Set(size_t maxsize, bool unique = true): _maxsize(maxsize), _count(0), _unique(unique) {
-        if (maxsize <= 0)
-            throw std::range_error("Set maxsize must greater than 0.");
+    explicit Set(size_t slots, bool unique = true): _size(slots), _count(0), _unique(unique) {
 
-        this->_slots = new Vector<T>*[maxsize];
-        for (size_t _ = 0; _ < maxsize; _++)
+        // Detect when number of slots is equal to 0
+        if (slots <= 0)
+            throw std::range_error("Number of slots must greater than 0.");
+
+        this->_slots = new Vector<T>*[slots];
+        for (size_t _ = 0; _ < slots; _++)
             this->_slots[_] = new Vector<T>;
     }
 
     size_t count() const { return this->_count; }
     void add(const T& value) {
-        const unsigned int key = hash(this->_maxsize, value);
+        const unsigned int key = hash(this->_size, value);
         Vector<T>* slot = this->_slots[key];
 
         // Use the short-circuit theorem to check whether the same value exists
@@ -41,14 +43,14 @@ public:
     }
 
     void remove(const T& value) {
-        const unsigned int key = hash(this->_maxsize, value);
+        const unsigned int key = hash(this->_size, value);
         Vector<T>* slot = this->_slots[key];
         slot->remove(value);
         this->_count--;
     }
 
     bool in(const T& value) const {
-        const unsigned int key = hash(this->_maxsize, value);
+        const unsigned int key = hash(this->_size, value);
         Vector<T>* slot = this->_slots[key];
         if (slot->empty()) return false;
 
@@ -58,8 +60,12 @@ public:
         return false;
     }
 
+    bool multiple() const {
+        return not this->_unique;
+    }
+
     ~Set() {
-        for (size_t _ = 0; _ < this->_maxsize; _++)
+        for (size_t _ = 0; _ < this->_size; _++)
             delete this->_slots[_];
         delete[] this->_slots;
     }
@@ -114,9 +120,9 @@ public:
         if (this->_count == 0)
             return Iterator(this->_slots, 0, 0);
 
-        for (size_t index = 0; index < this->_maxsize; index++)
+        for (size_t index = 0; index < this->_size; index++)
             if (!this->_slots[index]->empty()) {
-                return Iterator(this->_slots, index, this->_maxsize);
+                return Iterator(this->_slots, index, this->_size);
             }
 
         return Iterator(this->_slots, 0, 0);
@@ -129,9 +135,9 @@ public:
         if (this->_count == 0)
             return Iterator(this->_slots, 0, 0);
 
-        for (size_t index = this->_maxsize - 1; index > 0; index--) {
+        for (size_t index = this->_size - 1; index > 0; index--) {
             if (!this->_slots[index]->empty()) {
-                return Iterator(this->_slots, this->_maxsize, this->_maxsize);
+                return Iterator(this->_slots, this->_size, this->_size);
             }
         }
 
@@ -143,7 +149,7 @@ public:
     void _debug_vectors() const {
         std::cout << "Set count: " << this->count() << std::endl;
         std::cout << "Vectors begin:" << this->_slots << std::endl;
-        for (auto index = 0; index < this->_maxsize; index++) {
+        for (auto index = 0; index < this->_size; index++) {
             Vector<T>* ptr = this->_slots[index];
             std::cout << index + 1 << ". " << this->_slots + index
                       << '\t' << this->_slots[index] << '\t' << "Count: "
@@ -157,8 +163,8 @@ public:
 
     // All arithmetic operations
     Set<T> intersection(const Set<T>& other) const {
-        size_t size = std::max(this->_maxsize, other._maxsize);
-        Set<T> result(size);
+        size_t size = std::max(this->_size, other._size);
+        Set<T> result(size, this->_unique);
         for (auto&& value: other)
             if (this->in(value))
                 result.add(value);
@@ -167,7 +173,7 @@ public:
     }
 
     Set<T> union_(const Set<T>& other) const {
-        Set<T> result(this->_maxsize + other._maxsize);
+        Set<T> result(this->_size + other._size, this->_unique);
         for (auto&& value: *this)
             result.add(value);
         for (auto&& value: other)
@@ -177,8 +183,8 @@ public:
     }
 
     Set<T> difference(const Set<T>& other) const {
-        size_t size = std::max(this->_maxsize, other._maxsize);
-        Set<T> result(size);
+        size_t size = std::max(this->_size, other._size);
+        Set<T> result(size, this->_unique);
         for (const auto& value: *this)
             if (!other.in(value))
                 result.add(value);
@@ -193,7 +199,7 @@ public:
     }
 
     Set<T> complement(const Set<T>& universal) const {
-        Set<T> result(universal._maxsize);
+        Set<T> result(universal._size, this->_unique);
         for (const auto& value: universal)
             if (!this->in(value))
                 result.add(value);
@@ -202,14 +208,17 @@ public:
     }
 
     Set<Couple<T, T>> sum(const Set<T>& other) const {
-        size_t size = std::min(this->count(), other.count());
-        Set<Couple<T, T>> result(size);
+        size_t size = std::min(this->_size, other._size);
+        Set<Couple<T, T>> result(size, this->_unique);
 
         // No requirement for end iter cuz size has been defined
         Set<T>::Iterator this_iter = this->begin();
         Set<T>::Iterator other_iter = other.begin();
+        Set<T>::Iterator this_stop = this->end();
+        Set<T>::Iterator other_stop = other.end();
 
-        for (auto index = 0; index < size; index++) {
+        // Fix Empty set bug
+        while (this_iter != this_stop && other_iter != other_stop) {
             const T& value_a(*this_iter);
             const T& value_b(*other_iter);
             Couple<T, T> couple(value_a, value_b);
@@ -223,14 +232,37 @@ public:
     }
 
     Set<Couple<T, T>> product(const Set<T>& other) const {
-        size_t size = this->count() * other.count();
-        Set<Couple<T, T>> result(size);
+        size_t size = this->_size * other._size;
+        Set<Couple<T, T>> result(size, this->_unique);
 
         for (const auto& value_a: *this)
             for (const auto& value_b: other) {
                 Couple<T, T> couple(value_a, value_b);
                 result.add(couple);
             }
+
+        return result;
+    }
+
+    unsigned int multiplicity(const T& element) const {
+        unsigned int count = 0;
+        for (const auto& value: *this) {
+            if (element == value)
+                count++;
+        }
+        return count;
+    }
+
+    Vector<Couple<T, unsigned int>> analysis() const {
+        // Find all significant elements
+        Set<T> unique(this->_size);
+        for (const auto& element: *this)
+            unique.add((element));
+
+        // For all unique elements find multiplicity
+        Vector<Couple<T, unsigned int>> result;
+        for (const auto& element: unique)
+            result.append(Couple<T, unsigned int>(element, this->multiplicity(element)));
 
         return result;
     }
