@@ -1,8 +1,3 @@
-#define DEBUG
-#undef DEBUG
-#define MAX_GRAY_POWER_INPUT 10
-#define MIN_GRAY_POWER_INPUT 1
-
 #include "functions.h"
 
 int main(int argc, const char* argv[]) {
@@ -20,9 +15,31 @@ int main(int argc, const char* argv[]) {
         goto input;
     }
 
+    // Ask user if they want to give cardinality manually
+    unsigned int carda = 0;
+    unsigned int cardb = 0;
+
+    std::cout << "Do you want to specify cardinality for two sets? (Y/N): ";
+    std::cin.ignore();
+    std::cin.clear();
+    if (std::getchar() != 'Y') goto begin;
+
+    std::cout << "Input first unsigned cardinality: ";
+    std::cin >> buffer;
+    carda = strtoul(buffer.c_str(), nullptr, 10);
+    std::cout << "Input second unsigned cardinality: ";
+    std::cin >> buffer;
+    cardb = strtoul(buffer.c_str(), nullptr, 10);
+
+    // Show user some warning
+    std::cout << "Note: if you are using card bigger than 2**power without "
+              << "multiset support, the count of sets will be same as Universe."
+              << std::endl << std::endl;
+
+    begin:
     Set<Gray> universe = universal(power);
-    Set<Gray> parta = random(power);
-    Set<Gray> partb = random(power);
+    Set<Gray> parta = random(power, carda);
+    Set<Gray> partb = random(power, cardb);
 
     show("SU", universe);
     std::cout << "--------------------------" << std::endl;
