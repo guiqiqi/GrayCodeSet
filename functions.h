@@ -44,26 +44,15 @@ void show(const char* label, const Set<T>& set, unsigned int line = 4) {
         Vector<Couple<T, unsigned int>> result = set.analysis();
 
         Couple<T, unsigned int> first = result.index(0);
-        T mode = first.first();
-        unsigned int most = first.second();
 
         unsigned int total = result.count();
         for (int index = 0; index < total; index++) {
             Couple<T, unsigned int> value = result.pop(0);
-            auto element = value.first();
-            auto count = value.second();
+            const T& element = value.first();
+            unsigned int count = value.second();
             std::cout << element << " - " << count << " times" << std::endl;
-
-            // Update count result
-            if (count > most) {
-                mode = element;
-                most = count;
-            }
-
         }
 
-        // Show mode and count
-        std::cout << "Mode element: " << mode << " with multiple " << most << std::endl;
         std::cout << std::endl;
     }
 }

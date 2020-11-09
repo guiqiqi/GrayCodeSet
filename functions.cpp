@@ -78,13 +78,32 @@ Set<Gray> random(unsigned int power, unsigned int cardinality) {
 #endif
 
     // When user has specified cardinality
+    bool manual = false;
     if (cardinality <= 0)
         cardinality = uniform(engine);
+    else
+        manual = true;
 
-    for (unsigned int index = 0; index < cardinality; index++) {
-        Gray gray(power);
-        gray.import<short>(uniform(engine));
-        set.add(gray);
-    }
+    if (manual and set.multiple())
+        for (unsigned int index = 0; index < cardinality; index++) {
+            Gray gray(power);
+            gray.import<short>(uniform(engine));
+            set.add(gray);
+        }
+
+    if (manual and not set.multiple())
+        for (unsigned int value = 0; value < 0x1u << power && value < cardinality; value++) {
+            Gray gray(power);
+            gray.import<short>(value);
+            set.add(gray);
+        }
+
+    if (not manual)
+        for (unsigned int index = 0; index < cardinality; index++) {
+            Gray gray(power);
+            gray.import<short>(uniform(engine));
+            set.add(gray);
+        }
+
     return set;
 }

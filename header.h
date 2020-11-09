@@ -8,7 +8,7 @@
 
 // Control for multiset support
 #define MULTISET
-//#undef MULTISET
+#undef MULTISET
 
 #include <iostream>
 #include <memory>

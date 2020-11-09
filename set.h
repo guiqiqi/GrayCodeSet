@@ -256,12 +256,12 @@ public:
     Vector<Couple<T, unsigned int>> analysis() const {
         // Find all significant elements
         Set<T> unique(this->_size);
-        for (const auto& element: *this)
+        for (const auto element: *this)
             unique.add((element));
 
         // For all unique elements find multiplicity
         Vector<Couple<T, unsigned int>> result;
-        for (const auto& element: unique)
+        for (const auto element: unique)
             result.append(Couple<T, unsigned int>(element, this->multiplicity(element)));
 
         return result;
