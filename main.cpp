@@ -22,7 +22,11 @@ int main(int argc, const char* argv[]) {
     std::cout << "Do you want to specify cardinality for two sets? (Y/N): ";
     std::cin.ignore();
     std::cin.clear();
-    if (std::getchar() != 'Y') goto begin;
+    bool manual = true;
+    if (std::getchar() != 'Y') {
+        manual = false;
+        goto begin;
+    }
 
     std::cout << "Input first unsigned cardinality: ";
     std::cin >> buffer;
@@ -38,8 +42,8 @@ int main(int argc, const char* argv[]) {
 
     begin:
     Set<Gray> universe = universal(power);
-    Set<Gray> parta = random(power, carda);
-    Set<Gray> partb = random(power, cardb);
+    Set<Gray> parta = random(power, carda, manual);
+    Set<Gray> partb = random(power, cardb, manual);
 
     show("SU", universe);
     std::cout << "--------------------------" << std::endl;

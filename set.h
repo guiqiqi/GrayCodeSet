@@ -13,12 +13,13 @@ class Set {
 private:
     size_t _size;
     Vector<T>** _slots;
-    size_t _count;
     bool _unique;
+    Vector<Couple<size_t, size_t>>* _registry;
 
 public:
     Set() = delete;
-    explicit Set(size_t slots, bool unique = true): _size(slots), _count(0), _unique(unique) {
+    explicit Set(size_t slots, bool unique = true):
+    _size(slots), _unique(unique), _registry(nullptr) {
 
         // Detect when number of slots is equal to 0
         if (slots <= 0)
@@ -27,9 +28,14 @@ public:
         this->_slots = new Vector<T>*[slots];
         for (size_t _ = 0; _ < slots; _++)
             this->_slots[_] = new Vector<T>;
+
+        this->_registry = new Vector<Couple<size_t, size_t>>;
     }
 
-    size_t count() const { return this->_count; }
+    inline size_t count() const {
+        return this->_registry->count();
+    }
+
     void add(const T& value) {
         const unsigned int key = hash(this->_size, value);
         Vector<T>* slot = this->_slots[key];
@@ -38,15 +44,18 @@ public:
         if (this->_unique && slot->exist(value))
             return;
 
+        // Add to registry
+        this->_registry->append(Couple<size_t, size_t>(key, slot->count()));
         slot->append(value);
-        this->_count++;
     }
 
     void remove(const T& value) {
         const unsigned int key = hash(this->_size, value);
         Vector<T>* slot = this->_slots[key];
+
+        // Remove from registry
         slot->remove(value);
-        this->_count--;
+        this->_registry->remove(Couple<size_t, size_t>(key, slot->count()));
     }
 
     bool in(const T& value) const {
@@ -68,81 +77,41 @@ public:
         for (size_t _ = 0; _ < this->_size; _++)
             delete this->_slots[_];
         delete[] this->_slots;
+        if (this->_registry != nullptr)
+            delete this->_registry;
     }
 
 public:
     class Iterator {
     private:
-        Vector<T>** _slots;
-        size_t _current;
         size_t _index;
-        size_t _maxsize;
+        Vector<T>** _slots;
+        Vector<Couple<size_t, size_t>>* _registry;
 
     public:
         Iterator() = delete;
-        explicit Iterator(Vector<T>** slots, size_t current, size_t maxsize):
-            _slots(slots), _index(0), _maxsize(maxsize), _current(current) {}
-
+        explicit Iterator(Vector<T>** slots, Vector<Couple<size_t, size_t>>* registry, size_t index = 0):
+            _registry(registry), _slots(slots), _index(index) {};
         const T& operator*() const {
-            return this->_slots[this->_current]->get(this->_index);
+            const Couple<size_t, size_t> position = this->_registry->index(this->_index);
+            size_t slot = position.first();
+            size_t index = position.second();
+            return this->_slots[slot]->index(index);
         }
-
-        // Find next value
         Iterator operator++() {
-            if (this->_index < this->_slots[this->_current]->count() - 1) {
-                this->_index++;
-            } else {
-                this->_index = 0;
-
-                // Find for next valuable slot
-                while (this->_current < this->_maxsize) {
-                    this->_current++;
-                    if (this->_current == this->_maxsize)
-                        break;
-                    if (!this->_slots[this->_current]->empty())
-                        break;
-                }
-            }
-
+            this->_index++;
             return *this;
         }
-
-        bool operator!=(const Set<T>::Iterator& iter) const {
-            return (this->_current != iter._current || this->_index != iter._index);
+        bool operator!=(const Set<T>::Iterator& iter) {
+            return this->_index != iter._index;
         }
+
     };
 
 public:
-    // Range based for loop supporting
-    inline Iterator begin() const {
-
-        // When empty slot
-        if (this->_count == 0)
-            return Iterator(this->_slots, 0, 0);
-
-        for (size_t index = 0; index < this->_size; index++)
-            if (!this->_slots[index]->empty()) {
-                return Iterator(this->_slots, index, this->_size);
-            }
-
-        return Iterator(this->_slots, 0, 0);
-    }
-
-    // Search in reverse order for the last valuable slot
-    inline Iterator end() const {
-
-        // When empty slot
-        if (this->_count == 0)
-            return Iterator(this->_slots, 0, 0);
-
-        for (size_t index = this->_size - 1; index > 0; index--) {
-            if (!this->_slots[index]->empty()) {
-                return Iterator(this->_slots, this->_size, this->_size);
-            }
-        }
-
-        return Iterator(this->_slots, 0, 0);
-    }
+    Iterator begin() const { return Iterator(this->_slots, this->_registry); }
+    Iterator end() const { return Iterator(this->_slots, this->_registry,
+                                           this->_registry->count()); }
 
 #ifdef DEBUG
 public:

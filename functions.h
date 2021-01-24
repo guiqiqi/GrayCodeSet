@@ -45,20 +45,33 @@ void show(const char* label, const Set<T>& set, unsigned int line = 4) {
 
         Couple<T, unsigned int> first = result.index(0);
 
+        T* mode = nullptr;
+        unsigned int most = 0;
+
         unsigned int total = result.count();
         for (int index = 0; index < total; index++) {
             Couple<T, unsigned int> value = result.pop(0);
             const T& element = value.first();
             unsigned int count = value.second();
             std::cout << element << " - " << count << " times" << std::endl;
+
+            // Update moode and count
+            if (count > most) {
+                if (mode != nullptr) delete mode;
+                mode = new T(element);
+                most = count;
+            }
+
         }
 
+        std::cout << "Mode element: " << *mode << " with " << most << " times" << std::endl;
         std::cout << std::endl;
+        if (mode != nullptr) delete mode;
     }
 }
 
 // Generate Gray Set with specific power
 Set<Gray> universal(unsigned int);
-Set<Gray> random(unsigned int, unsigned int = 0);
+Set<Gray> random(unsigned int, unsigned int = 0, bool usermode = false);
 
 #endif //GRAYSET_FUNCTIONS_H

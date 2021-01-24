@@ -68,7 +68,7 @@ Set<Gray> universal(unsigned int power) {
     return set;
 }
 
-Set<Gray> random(unsigned int power, unsigned int cardinality) {
+Set<Gray> random(unsigned int power, unsigned int cardinality, bool manual) {
     std::uniform_int_distribution<unsigned> uniform(0, 0x1u << power);
 
 #ifdef MULTISET
@@ -77,12 +77,12 @@ Set<Gray> random(unsigned int power, unsigned int cardinality) {
     Set<Gray> set(16);
 #endif
 
-    // When user has specified cardinality
-    bool manual = false;
-    if (cardinality <= 0)
+    if (power == 0) return set;
+    if (manual and cardinality == 0) return set;
+
+    // When user not specified cardinality
+    if (not manual)
         cardinality = uniform(engine);
-    else
-        manual = true;
 
     if (manual and set.multiple())
         for (unsigned int index = 0; index < cardinality; index++) {
