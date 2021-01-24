@@ -342,7 +342,7 @@ class Iterator {
         Vector<T>** _slots;
         size_t _current;
         size_t _index;
-        size_t _maxsize;
+        size_t _size;
         ...
 }
 ```
@@ -365,7 +365,7 @@ unsigned int hash(size_t, const T&);
 template <typename T>
 class Set {
 private:
-    size_t _maxsize;
+    size_t _size;
     Vector<T>** _slots;
     size_t _count;
     bool _unique;
